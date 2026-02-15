@@ -32,6 +32,30 @@ class HeapSortTest: StringSpec({
         }
     }
 
+
+    "Full trace test for [5, 4, 19, 8, 16, 3]" {
+        val arr = intArrayOf(5, 4, 19, 8, 16, 3)
+
+        HeapSort.sort(arr)
+
+        arr.toList() shouldBe listOf(3, 4, 5, 8, 16, 19)
+
+        val actual = normalize(HeapSort.trace)
+        val expected = listOf(
+            "T1","T2","T3","T2","T3","T5","T4","T5","T6","T7",
+            "T2","T3","T5","T4","T5","T6","T7","T3",
+            "T8",
+            "T9","T10","T3","T5","T4","T6","T7","T3","T5","T4","T6","T7",
+            "T9","T10","T3","T5","T4","T6","T7","T3",
+            "T9","T10","T3","T5","T4","T5","T6","T7",
+            "T9","T10","T3","T5","T6","T7",
+            "T9","T10","T11"
+        )
+        actual shouldBe expected
+    }
+
+
+
     "Full trace test for [10, 7, 19, 13]" {
 
         val arr = intArrayOf(10, 7, 19, 13)
@@ -65,8 +89,6 @@ class HeapSortTest: StringSpec({
             "Т11: Конец сортировки"
         )
     }
-
-
 
     "HeapSort should sort array correctly" {
         checkAll(
