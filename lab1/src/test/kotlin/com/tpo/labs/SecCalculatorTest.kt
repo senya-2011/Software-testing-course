@@ -16,11 +16,12 @@ class SecCalculatorTest: StringSpec({
     val eps = 1e-5
     val oracle = { x: Double -> 1.0 / cos(x) }
 
-    "sec(x) should return exact values for standard points (0, PI, PI/3)" {
+    "sec(x) should return exact values for standard points (0, ±PI, ±PI/3, ±2PI)" {
         val table = mapOf(
             0.0 to 1.0,
             PI to -1.0,
             2 * PI to 1.0,
+            -2 * PI to 1.0,
             -PI to -1.0,
             PI / 3 to 2.0,
             -PI / 3 to 2.0
