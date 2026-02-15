@@ -20,6 +20,6 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      - name: Generate API and run tests
-        working-directory: backend
+      - name: Run Tests
+        working-directory: lab1
         run: chmod +x gradlew && ./gradlew test
