@@ -72,4 +72,10 @@ class SecCalculatorTest: StringSpec({
             actual.isInfinite() shouldBe true
         }
     }
+
+    "sec(x) should handle special floating-point values" {
+        SecCalculator.sec(Double.NaN).isNaN() shouldBe true
+        SecCalculator.sec(Double.POSITIVE_INFINITY).isNaN() shouldBe true
+        SecCalculator.sec(Double.MIN_VALUE) shouldBe (1.0 plusOrMinus eps)
+    }
 })
