@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.tpo.labs.lab2.log.LogUnitTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-03-12T07:33:52.589Z" hostname="DESKTOP-1FD8M7R" time="0.182">
-  <properties/>
-  <testcase name="ln(x) should match kotlin ln(x) for x in (0, 5]" classname="com.tpo.labs.lab2.log.LogUnitTest" time="0.129"/>
-  <testcase name="log_b(x) should satisfy change of base against kotlin ln" classname="com.tpo.labs.lab2.log.LogUnitTest" time="0.026"/>
-  <testcase name="ln(x) should be NaN for x&lt;=0" classname="com.tpo.labs.lab2.log.LogUnitTest" time="0.022"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

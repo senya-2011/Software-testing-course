@@ -95,8 +95,13 @@ class SystemIntegrationTest : StringSpec({
             val secX = 1.0 / cosX
             val cscX = 1.0 / sinX
 
-            val left =
-                (((( ((secX * cscX) / (tanX * tanX)).pow3() - (cscX - tanX) ).pow3() ).pow2() ).pow3() ).pow3()
+            val base = (secX * cscX) / (tanX * tanX)
+            val a = base * base * base
+            val b = a - (cscX - tanX)
+            val c = b * b * b
+            val d = c * c
+            val e = d * d * d
+            val left = e * e * e
 
             val inner = (cosX - secX) - ((cscX * cscX * cscX) * ((sinX * sinX) * secX))
             val denom = cscX + (((tanX + tanX) * inner) * ((cosX / cotX) + (cotX * (cotX - tanX))))
@@ -119,8 +124,13 @@ class SystemIntegrationTest : StringSpec({
             val secX = 1.0 / cosX
             val cscX = 1.0 / sinX
 
-            val left =
-                (((( ((secX * cscX) / (tanX * tanX)).pow3() - (cscX - tanX) ).pow3() ).pow2() ).pow3() ).pow3()
+            val base = (secX * cscX) / (tanX * tanX)
+            val a = base * base * base
+            val b = a - (cscX - tanX)
+            val c = b * b * b
+            val d = c * c
+            val e = d * d * d
+            val left = e * e * e
 
             val inner = (cosX - secX) - ((cscX * cscX * cscX) * ((sinX * sinX) * secX))
             val denom = cscX + (((tanX + tanX) * inner) * ((cosX / cotX) + (cotX * (cotX - tanX))))
@@ -128,11 +138,11 @@ class SystemIntegrationTest : StringSpec({
         }
 
         listOf(-PI / 3, -PI / 4).forEach { x ->
-            system.calculate(x) shouldBe (oracle(x) plusOrMinus 1e-2)
+            val value = system.calculate(x)
+            val expected = oracle(x)
+            val tol = kotlin.math.abs(expected) * 1e-10
+            value shouldBe (expected plusOrMinus tol)
         }
     }
 })
-
-private fun Double.pow2(): Double = this * this
-private fun Double.pow3(): Double = this * this * this
 

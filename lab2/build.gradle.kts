@@ -23,7 +23,4 @@ tasks.test {
     useJUnitPlatform()
 }
 
-kotlin {
-    jvmToolchain(20)
-}
-
+// Используем JDK, который уже установлен в окружении (например, setup-java в CI)
