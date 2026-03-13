@@ -180,10 +180,4 @@ object TestTables {
         2.0 to 27.26867157343539,
         5.0 to 0.07852673737495784
     )
-
-    val sinRangeCsvValues = linkedMapOf(
-        0.0 to 0.0,
-        PI / 6.0 to 0.5,
-        PI / 3.0 to 0.8660254037844386
-    )
 }
