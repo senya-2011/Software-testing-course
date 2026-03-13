@@ -15,27 +15,24 @@ import java.util.Locale;
 import java.util.function.DoubleUnaryOperator;
 
 public class Main {
-    public static void main(String[] args) {
-        if (args.length < 5 || args.length > 6) {
-            printUsage();
-            return;
-        }
+    private static final String MODULE_NAME = "system";
+    private static final double RANGE_START = -2.0;
+    private static final double RANGE_END = 5.0;
+    private static final double RANGE_STEP = 0.05;
+    private static final Path OUTPUT_PATH = Path.of("system.csv");
+    private static final String DELIMITER = ";";
 
-        String moduleName = args[0].toLowerCase(Locale.ROOT);
-        double start = Double.parseDouble(args[1]);
-        double end = Double.parseDouble(args[2]);
-        double step = Double.parseDouble(args[3]);
-        Path outputPath = Path.of(args[4]);
-        String delimiter = args.length == 6 ? args[5] : ";";
+    public static void main(String[] args) {
+        String moduleName = MODULE_NAME.toLowerCase(Locale.ROOT);
 
         CsvFunctionExporter.exportRange(
-                outputPath,
+                OUTPUT_PATH,
                 moduleName,
                 resolveModule(moduleName),
-                start,
-                end,
-                step,
-                delimiter
+                RANGE_START,
+                RANGE_END,
+                RANGE_STEP,
+                DELIMITER
         );
     }
 
@@ -70,10 +67,5 @@ public class Main {
             default:
                 throw new IllegalArgumentException("Unknown module: " + moduleName);
         }
-    }
-
-    private static void printUsage() {
-        System.out.println("Usage: <module> <start> <end> <step> <output.csv> [delimiter]");
-        System.out.println("Modules: system, sin, cos, sec, csc, tan, cot, ln, log2, log3, log5");
     }
 }
