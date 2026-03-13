@@ -21,8 +21,8 @@ public class SystemOfFunctions {
     private final LogarithmicFunction log5;
 
     public SystemOfFunctions() {
-        CosFunction cos = new CosFunction();
         SinFunction sin = new SinFunction();
+        CosFunction cos = new CosFunction(sin);
         LnFunction ln = new LnFunction();
 
         this.cos = cos;
@@ -121,4 +121,3 @@ public class SystemOfFunctions {
         return power > 0 ? result : 1.0 / result;
     }
 }
-

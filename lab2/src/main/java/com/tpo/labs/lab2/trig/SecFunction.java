@@ -18,10 +18,9 @@ public class SecFunction implements TrigonometricFunction {
         }
 
         if (Math.abs(cosX) < EPS) {
-            return Double.POSITIVE_INFINITY;
+            return Math.copySign(Double.POSITIVE_INFINITY, cosX);
         }
 
         return 1.0 / cosX;
     }
 }
-

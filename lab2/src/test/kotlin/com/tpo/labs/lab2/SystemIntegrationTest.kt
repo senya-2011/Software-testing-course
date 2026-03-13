@@ -1,148 +1,180 @@
 package com.tpo.labs.lab2
 
+import com.tpo.labs.lab2.io.CsvFunctionExporter
+import com.tpo.labs.lab2.log.LnFunction
+import com.tpo.labs.lab2.log.LogBaseFunction
+import com.tpo.labs.lab2.log.LogarithmicFunction
+import com.tpo.labs.lab2.table.TableLogarithmicFunction
+import com.tpo.labs.lab2.table.TableTrigonometricFunction
+import com.tpo.labs.lab2.trig.CosFunction
+import com.tpo.labs.lab2.trig.CotFunction
+import com.tpo.labs.lab2.trig.CscFunction
+import com.tpo.labs.lab2.trig.SecFunction
+import com.tpo.labs.lab2.trig.SinFunction
+import com.tpo.labs.lab2.trig.TanFunction
+import com.tpo.labs.lab2.trig.TrigonometricFunction
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.ln
-import kotlin.math.sin
+import java.nio.file.Files
+import java.util.function.DoubleUnaryOperator
+import kotlin.math.abs
 
 class SystemIntegrationTest : StringSpec({
-    val eps = 1e-4
-
-    "log branch with our implementation should match oracle for x>0" {
-        val system = SystemOfFunctions()
-
-        fun oracle(x: Double): Double {
-            val log2 = ln(x) / ln(2.0)
-            val log3 = ln(x) / ln(3.0)
-            val log5 = ln(x) / ln(5.0)
-            val base = ((log2 / log5) - ln(x)) / log3
-            return base * base * base / log3
-        }
-
-        listOf(0.2, 0.5, 1.3, 2.0).forEach { x ->
-            system.calculate(x) shouldBe (oracle(x) plusOrMinus eps)
-        }
-    }
-
-    "log branch with ideal logs (DI) should match oracle for x>0" {
-        val lnF: (Double) -> Double = { x -> ln(x) }
-        val log2F: (Double) -> Double = { x -> ln(x) / ln(2.0) }
-        val log3F: (Double) -> Double = { x -> ln(x) / ln(3.0) }
-        val log5F: (Double) -> Double = { x -> ln(x) / ln(5.0) }
-
-        val constZeroTrig: (Double) -> Double = { 0.0 } // треги здесь не используются для x>0
-
+    "system works with CSV stubs for all modules" {
         val system = SystemOfFunctions(
-            constZeroTrig::invoke,
-            constZeroTrig::invoke,
-            constZeroTrig::invoke,
-            constZeroTrig::invoke,
-            constZeroTrig::invoke,
-            constZeroTrig::invoke,
-            lnF::invoke,
-            log2F::invoke,
-            log3F::invoke,
-            log5F::invoke
+            trigStubFromTable("cos", TestTables.cosSystemValues),
+            trigStubFromTable("sin", TestTables.sinSystemValues),
+            trigStubFromTable("sec", TestTables.secSystemValues),
+            trigStubFromTable("csc", TestTables.cscSystemValues),
+            trigStubFromTable("tan", TestTables.tanSystemValues),
+            trigStubFromTable("cot", TestTables.cotSystemValues),
+            logStubFromTable("ln", TestTables.lnSystemValues),
+            logStubFromTable("log2", TestTables.log2SystemValues),
+            logStubFromTable("log3", TestTables.log3SystemValues),
+            logStubFromTable("log5", TestTables.log5SystemValues)
         )
 
-        fun oracle(x: Double): Double {
-            val log2 = ln(x) / ln(2.0)
-            val log3 = ln(x) / ln(3.0)
-            val log5 = ln(x) / ln(5.0)
-            val base = ((log2 / log5) - ln(x)) / log3
-            return base * base * base / log3
-        }
-
-        listOf(0.2, 0.5, 1.3, 2.0).forEach { x ->
-            system.calculate(x) shouldBe (oracle(x) plusOrMinus eps)
-        }
+        assertSystemValues(system)
     }
 
-    "trig branch with ideal trigs (DI) should match oracle for x<=0" {
-        val cosF: (Double) -> Double = { x -> cos(x) }
-        val sinF: (Double) -> Double = { x -> sin(x) }
-        val secF: (Double) -> Double = { x -> 1.0 / cos(x) }
-        val cscF: (Double) -> Double = { x -> 1.0 / sin(x) }
-        val tanF: (Double) -> Double = { x -> sin(x) / cos(x) }
-        val cotF: (Double) -> Double = { x -> cos(x) / sin(x) }
-
-        val lnF: (Double) -> Double = { x -> ln(x) }
-        val log2F: (Double) -> Double = { x -> ln(x) / ln(2.0) }
-        val log3F: (Double) -> Double = { x -> ln(x) / ln(3.0) }
-        val log5F: (Double) -> Double = { x -> ln(x) / ln(5.0) }
-
+    "system works with real sin and CSV cosine built over it" {
+        val sin = SinFunction()
+        val cos = trigStubFromFunction("cos", CosFunction(sin)::calculate, TestTables.trigSystemDomainPoints)
         val system = SystemOfFunctions(
-            cosF::invoke,
-            sinF::invoke,
-            secF::invoke,
-            cscF::invoke,
-            tanF::invoke,
-            cotF::invoke,
-            lnF::invoke,
-            log2F::invoke,
-            log3F::invoke,
-            log5F::invoke
+            cos,
+            sin,
+            trigStubFromTable("sec", TestTables.secSystemValues),
+            trigStubFromTable("csc", TestTables.cscSystemValues),
+            trigStubFromTable("tan", TestTables.tanSystemValues),
+            trigStubFromTable("cot", TestTables.cotSystemValues),
+            logStubFromTable("ln", TestTables.lnSystemValues),
+            logStubFromTable("log2", TestTables.log2SystemValues),
+            logStubFromTable("log3", TestTables.log3SystemValues),
+            logStubFromTable("log5", TestTables.log5SystemValues)
         )
 
-        fun oracle(x: Double): Double {
-            val sinX = sin(x)
-            val cosX = cos(x)
-            val tanX = sinX / cosX
-            val cotX = cosX / sinX
-            val secX = 1.0 / cosX
-            val cscX = 1.0 / sinX
-
-            val base = (secX * cscX) / (tanX * tanX)
-            val a = base * base * base
-            val b = a - (cscX - tanX)
-            val c = b * b * b
-            val d = c * c
-            val e = d * d * d
-            val left = e * e * e
-
-            val inner = (cosX - secX) - ((cscX * cscX * cscX) * ((sinX * sinX) * secX))
-            val denom = cscX + (((tanX + tanX) * inner) * ((cosX / cotX) + (cotX * (cotX - tanX))))
-            return left / denom
-        }
-
-        listOf(-PI / 3, -PI / 4).forEach { x ->
-            system.calculate(x) shouldBe (oracle(x) plusOrMinus eps)
-        }
+        assertSystemValues(system)
     }
 
-    "trig branch with our implementation should match oracle for x<=0" {
-        val system = SystemOfFunctions()
+    "system works with real trigonometric modules and CSV cosine dependency" {
+        val sin = SinFunction()
+        val cos = trigStubFromFunction("cos", CosFunction(sin)::calculate, TestTables.trigSystemDomainPoints)
+        val sec = SecFunction(cos)
+        val csc = CscFunction(sin)
+        val tan = TanFunction(sin, cos)
+        val cot = CotFunction(sin, cos)
+        val system = SystemOfFunctions(
+            cos,
+            sin,
+            sec,
+            csc,
+            tan,
+            cot,
+            logStubFromTable("ln", TestTables.lnSystemValues),
+            logStubFromTable("log2", TestTables.log2SystemValues),
+            logStubFromTable("log3", TestTables.log3SystemValues),
+            logStubFromTable("log5", TestTables.log5SystemValues)
+        )
 
-        fun oracle(x: Double): Double {
-            val sinX = sin(x)
-            val cosX = cos(x)
-            val tanX = sinX / cosX
-            val cotX = cosX / sinX
-            val secX = 1.0 / cosX
-            val cscX = 1.0 / sinX
+        assertSystemValues(system)
+    }
 
-            val base = (secX * cscX) / (tanX * tanX)
-            val a = base * base * base
-            val b = a - (cscX - tanX)
-            val c = b * b * b
-            val d = c * c
-            val e = d * d * d
-            val left = e * e * e
+    "system works with fully real trigonometric branch and CSV logarithmic stubs" {
+        val sin = SinFunction()
+        val cos = CosFunction(sin)
+        val system = SystemOfFunctions(
+            cos,
+            sin,
+            SecFunction(cos),
+            CscFunction(sin),
+            TanFunction(sin, cos),
+            CotFunction(sin, cos),
+            logStubFromTable("ln", TestTables.lnSystemValues),
+            logStubFromTable("log2", TestTables.log2SystemValues),
+            logStubFromTable("log3", TestTables.log3SystemValues),
+            logStubFromTable("log5", TestTables.log5SystemValues)
+        )
 
-            val inner = (cosX - secX) - ((cscX * cscX * cscX) * ((sinX * sinX) * secX))
-            val denom = cscX + (((tanX + tanX) * inner) * ((cosX / cotX) + (cotX * (cotX - tanX))))
-            return left / denom
-        }
+        assertSystemValues(system)
+    }
 
-        listOf(-PI / 3, -PI / 4).forEach { x ->
-            val value = system.calculate(x)
-            val expected = oracle(x)
-            val tol = kotlin.math.abs(expected) * 1e-10
-            value shouldBe (expected plusOrMinus tol)
-        }
+    "system works with real ln and CSV logarithms built over it" {
+        val sin = SinFunction()
+        val cos = CosFunction(sin)
+        val ln = LnFunction()
+        val log2 = logStubFromFunction("log2", LogBaseFunction(ln, 2.0)::calculate, TestTables.logSystemDomainPoints)
+        val log3 = logStubFromFunction("log3", LogBaseFunction(ln, 3.0)::calculate, TestTables.logSystemDomainPoints)
+        val log5 = logStubFromFunction("log5", LogBaseFunction(ln, 5.0)::calculate, TestTables.logSystemDomainPoints)
+        val system = SystemOfFunctions(
+            cos,
+            sin,
+            SecFunction(cos),
+            CscFunction(sin),
+            TanFunction(sin, cos),
+            CotFunction(sin, cos),
+            ln,
+            log2,
+            log3,
+            log5
+        )
+
+        assertSystemValues(system)
+    }
+
+    "system works with fully real modules" {
+        assertSystemValues(SystemOfFunctions())
     }
 })
 
+private const val delimiter = ";"
+
+private fun trigStubFromTable(moduleName: String, values: Map<Double, Double>): TrigonometricFunction {
+    return trigStubFromFunction(
+        moduleName,
+        DoubleUnaryOperator { x -> values.getValue(x) },
+        values.keys.sorted()
+    )
+}
+
+private fun logStubFromTable(moduleName: String, values: Map<Double, Double>): LogarithmicFunction {
+    return logStubFromFunction(
+        moduleName,
+        DoubleUnaryOperator { x -> values.getValue(x) },
+        values.keys.sorted()
+    )
+}
+
+private fun trigStubFromFunction(
+    moduleName: String,
+    function: DoubleUnaryOperator,
+    points: List<Double>
+): TrigonometricFunction {
+    val path = Files.createTempFile(moduleName, ".csv")
+    CsvFunctionExporter.exportPoints(path, moduleName, function, points, delimiter)
+    return TableTrigonometricFunction.fromCsv(path, delimiter, TestTables.tableLookupEps)
+}
+
+private fun logStubFromFunction(
+    moduleName: String,
+    function: DoubleUnaryOperator,
+    points: List<Double>
+): LogarithmicFunction {
+    val path = Files.createTempFile(moduleName, ".csv")
+    CsvFunctionExporter.exportPoints(path, moduleName, function, points, delimiter)
+    return TableLogarithmicFunction.fromCsv(path, delimiter, TestTables.tableLookupEps)
+}
+
+private fun assertSystemValues(system: SystemOfFunctions) {
+    TestTables.systemTrigValues.forEach { (x, expected) ->
+        system.calculate(x) shouldBe (expected plusOrMinus systemTolerance(expected))
+    }
+
+    TestTables.systemLogValues.forEach { (x, expected) ->
+        system.calculate(x) shouldBe (expected plusOrMinus systemTolerance(expected))
+    }
+}
+
+private fun systemTolerance(expected: Double): Double {
+    return maxOf(abs(expected) * 1e-4, 1e-6)
+}

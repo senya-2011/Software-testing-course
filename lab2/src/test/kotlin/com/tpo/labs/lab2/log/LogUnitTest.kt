@@ -1,38 +1,66 @@
 package com.tpo.labs.lab2.log
 
+import com.tpo.labs.lab2.TestTables
+import com.tpo.labs.lab2.table.TableLogarithmicFunction
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
-import io.kotest.property.Arb
-import io.kotest.property.arbitrary.double
-import io.kotest.property.arbitrary.filter
-import io.kotest.property.checkAll
-import kotlin.math.ln
 
 class LogUnitTest : StringSpec({
-    val eps = 1e-4
-    val lnFn: LogarithmicFunction = LnFunction()
-    val log2 = LogBaseFunction(lnFn, 2.0)
-    val log3 = LogBaseFunction(lnFn, 3.0)
-    val log5 = LogBaseFunction(lnFn, 5.0)
+    val logEps = 1e-7
+    val tableEps = TestTables.tableLookupEps
 
-    "ln(x) should match kotlin ln(x) for x in (0, 5]" {
-        checkAll(Arb.double(1e-3, 5.0).filter { it.isFinite() }) { x ->
-            lnFn.calculate(x) shouldBe (ln(x) plusOrMinus eps)
+    "ln returns tabular values on control points" {
+        val lnFunction = LnFunction()
+
+        TestTables.lnControlValues.forEach { (x, expected) ->
+            lnFunction.calculate(x) shouldBe (expected plusOrMinus logEps)
         }
     }
 
-    "log_b(x) should satisfy change of base against kotlin ln" {
-        checkAll(Arb.double(1e-3, 5.0).filter { it.isFinite() }) { x ->
-            log2.calculate(x) shouldBe ((ln(x) / ln(2.0)) plusOrMinus eps)
-            log3.calculate(x) shouldBe ((ln(x) / ln(3.0)) plusOrMinus eps)
-            log5.calculate(x) shouldBe ((ln(x) / ln(5.0)) plusOrMinus eps)
+    "ln respects multiplication law on tabular points" {
+        val lnFunction = LnFunction()
+
+        val left = lnFunction.calculate(2.0) + lnFunction.calculate(0.5)
+        left shouldBe (TestTables.lnControlValues.getValue(1.0) plusOrMinus logEps)
+    }
+
+    "ln is undefined for non-positive values" {
+        val lnFunction = LnFunction()
+
+        lnFunction.calculate(0.0).isNaN() shouldBe true
+        lnFunction.calculate(-1.0).isNaN() shouldBe true
+    }
+
+    "log2 uses ln tabular stub" {
+        val log2 = LogBaseFunction(TableLogarithmicFunction(TestTables.lnControlValues, tableEps), 2.0)
+
+        TestTables.log2ControlValues.forEach { (x, expected) ->
+            log2.calculate(x) shouldBe (expected plusOrMinus logEps)
         }
     }
 
-    "ln(x) should be NaN for x<=0" {
-        lnFn.calculate(0.0).isNaN() shouldBe true
-        lnFn.calculate(-1.0).isNaN() shouldBe true
+    "log3 uses ln tabular stub" {
+        val log3 = LogBaseFunction(TableLogarithmicFunction(TestTables.lnControlValues, tableEps), 3.0)
+
+        TestTables.log3ControlValues.forEach { (x, expected) ->
+            log3.calculate(x) shouldBe (expected plusOrMinus logEps)
+        }
+    }
+
+    "log5 uses ln tabular stub" {
+        val log5 = LogBaseFunction(TableLogarithmicFunction(TestTables.lnControlValues, tableEps), 5.0)
+
+        TestTables.log5ControlValues.forEach { (x, expected) ->
+            log5.calculate(x) shouldBe (expected plusOrMinus logEps)
+        }
+    }
+
+    "logarithms preserve base points" {
+        val lnStub = TableLogarithmicFunction(TestTables.lnControlValues, tableEps)
+
+        LogBaseFunction(lnStub, 2.0).calculate(2.0) shouldBe (1.0 plusOrMinus logEps)
+        LogBaseFunction(lnStub, 3.0).calculate(3.0) shouldBe (1.0 plusOrMinus logEps)
+        LogBaseFunction(lnStub, 5.0).calculate(5.0) shouldBe (1.0 plusOrMinus logEps)
     }
 })
-

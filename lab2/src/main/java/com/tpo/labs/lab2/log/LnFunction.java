@@ -15,7 +15,6 @@ public class LnFunction implements LogarithmicFunction {
             return Double.POSITIVE_INFINITY;
         }
 
-        // Scale x to y in [0.5, 2] using powers of 2 to improve convergence.
         int k = 0;
         double y = x;
         while (y > 2.0) {
@@ -30,7 +29,7 @@ public class LnFunction implements LogarithmicFunction {
         double t = (y - 1) / (y + 1);
         double term = t;
         double sum = 0.0;
-        int n = 1; // odd denominators: 1,3,5,...
+        int n = 1;
 
         while (Math.abs(term) > EPS && n < MAX_ITERATIONS) {
             sum += term / n;
@@ -42,4 +41,3 @@ public class LnFunction implements LogarithmicFunction {
         return lnY + k * LN2;
     }
 }
-

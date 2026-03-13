@@ -21,10 +21,9 @@ public class CotFunction implements TrigonometricFunction {
         }
 
         if (Math.abs(sinX) < EPS) {
-            return Double.POSITIVE_INFINITY;
+            return Math.copySign(Double.POSITIVE_INFINITY, sinX * cosX);
         }
 
         return cosX / sinX;
     }
 }
-

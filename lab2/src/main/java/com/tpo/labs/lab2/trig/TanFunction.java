@@ -21,10 +21,9 @@ public class TanFunction implements TrigonometricFunction {
         }
 
         if (Math.abs(cosX) < EPS) {
-            return Double.POSITIVE_INFINITY;
+            return Math.copySign(Double.POSITIVE_INFINITY, sinX * cosX);
         }
 
         return sinX / cosX;
     }
 }
-

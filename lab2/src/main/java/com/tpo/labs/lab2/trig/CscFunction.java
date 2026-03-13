@@ -18,10 +18,9 @@ public class CscFunction implements TrigonometricFunction {
         }
 
         if (Math.abs(sinX) < EPS) {
-            return Double.POSITIVE_INFINITY;
+            return Math.copySign(Double.POSITIVE_INFINITY, sinX);
         }
 
         return 1.0 / sinX;
     }
 }
-
