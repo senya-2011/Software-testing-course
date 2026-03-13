@@ -13,71 +13,125 @@ import com.tpo.labs.lab2.trig.TrigonometricFunction
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import kotlin.math.abs
 
 class SystemIntegrationTest : StringSpec({
-    "system works with in-memory tabular stubs for all modules" {
+    "system works with in-memory tabular mocks for all modules" {
+        val cos = trigMockFromTable(TestTables.cosSystemValues)
+        val sin = trigMockFromTable(TestTables.sinSystemValues)
+        val sec = trigMockFromTable(TestTables.secSystemValues)
+        val csc = trigMockFromTable(TestTables.cscSystemValues)
+        val tan = trigMockFromTable(TestTables.tanSystemValues)
+        val cot = trigMockFromTable(TestTables.cotSystemValues)
+        val ln = logMockFromTable(TestTables.lnSystemValues)
+        val log2 = logMockFromTable(TestTables.log2SystemValues)
+        val log3 = logMockFromTable(TestTables.log3SystemValues)
+        val log5 = logMockFromTable(TestTables.log5SystemValues)
         val system = SystemOfFunctions(
-            trigStubFromTable("cos", TestTables.cosSystemValues),
-            trigStubFromTable("sin", TestTables.sinSystemValues),
-            trigStubFromTable("sec", TestTables.secSystemValues),
-            trigStubFromTable("csc", TestTables.cscSystemValues),
-            trigStubFromTable("tan", TestTables.tanSystemValues),
-            trigStubFromTable("cot", TestTables.cotSystemValues),
-            logStubFromTable("ln", TestTables.lnSystemValues),
-            logStubFromTable("log2", TestTables.log2SystemValues),
-            logStubFromTable("log3", TestTables.log3SystemValues),
-            logStubFromTable("log5", TestTables.log5SystemValues)
+            cos.mock,
+            sin.mock,
+            sec.mock,
+            csc.mock,
+            tan.mock,
+            cot.mock,
+            ln.mock,
+            log2.mock,
+            log3.mock,
+            log5.mock
         )
 
         assertSystemValues(system)
+        verifyTrigCalls(cos, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(sin, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(sec, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(csc, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(tan, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(cot, TestTables.trigSystemDomainPoints)
+        verifyLogCalls(ln, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log2, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log3, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log5, TestTables.logSystemDomainPoints)
     }
 
-    "system works with real sin and tabular cosine stub" {
+    "system works with real sin and mocked cosine table" {
         val sin = SinFunction()
-        val cos = trigStubFromCalculatedValues(CosFunction(sin), TestTables.trigSystemDomainPoints)
+        val cos = trigMockFromCalculatedValues(CosFunction(sin), TestTables.trigSystemDomainPoints)
+        val sec = trigMockFromTable(TestTables.secSystemValues)
+        val csc = trigMockFromTable(TestTables.cscSystemValues)
+        val tan = trigMockFromTable(TestTables.tanSystemValues)
+        val cot = trigMockFromTable(TestTables.cotSystemValues)
+        val ln = logMockFromTable(TestTables.lnSystemValues)
+        val log2 = logMockFromTable(TestTables.log2SystemValues)
+        val log3 = logMockFromTable(TestTables.log3SystemValues)
+        val log5 = logMockFromTable(TestTables.log5SystemValues)
         val system = SystemOfFunctions(
-            cos,
+            cos.mock,
             sin,
-            trigStubFromTable("sec", TestTables.secSystemValues),
-            trigStubFromTable("csc", TestTables.cscSystemValues),
-            trigStubFromTable("tan", TestTables.tanSystemValues),
-            trigStubFromTable("cot", TestTables.cotSystemValues),
-            logStubFromTable("ln", TestTables.lnSystemValues),
-            logStubFromTable("log2", TestTables.log2SystemValues),
-            logStubFromTable("log3", TestTables.log3SystemValues),
-            logStubFromTable("log5", TestTables.log5SystemValues)
+            sec.mock,
+            csc.mock,
+            tan.mock,
+            cot.mock,
+            ln.mock,
+            log2.mock,
+            log3.mock,
+            log5.mock
         )
 
         assertSystemValues(system)
+        verifyTrigCalls(cos, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(sec, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(csc, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(tan, TestTables.trigSystemDomainPoints)
+        verifyTrigCalls(cot, TestTables.trigSystemDomainPoints)
+        verifyLogCalls(ln, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log2, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log3, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log5, TestTables.logSystemDomainPoints)
     }
 
-    "system works with real trigonometric modules and tabular cosine dependency" {
+    "system works with real trigonometric modules and mocked cosine dependency" {
         val sin = SinFunction()
-        val cos = trigStubFromCalculatedValues(CosFunction(sin), TestTables.trigSystemDomainPoints)
-        val sec = SecFunction(cos)
+        val cos = trigMockFromCalculatedValues(CosFunction(sin), TestTables.trigSystemDomainPoints)
+        val ln = logMockFromTable(TestTables.lnSystemValues)
+        val log2 = logMockFromTable(TestTables.log2SystemValues)
+        val log3 = logMockFromTable(TestTables.log3SystemValues)
+        val log5 = logMockFromTable(TestTables.log5SystemValues)
+        val sec = SecFunction(cos.mock)
         val csc = CscFunction(sin)
-        val tan = TanFunction(sin, cos)
-        val cot = CotFunction(sin, cos)
+        val tan = TanFunction(sin, cos.mock)
+        val cot = CotFunction(sin, cos.mock)
         val system = SystemOfFunctions(
-            cos,
+            cos.mock,
             sin,
             sec,
             csc,
             tan,
             cot,
-            logStubFromTable("ln", TestTables.lnSystemValues),
-            logStubFromTable("log2", TestTables.log2SystemValues),
-            logStubFromTable("log3", TestTables.log3SystemValues),
-            logStubFromTable("log5", TestTables.log5SystemValues)
+            ln.mock,
+            log2.mock,
+            log3.mock,
+            log5.mock
         )
 
         assertSystemValues(system)
+        verifyTrigCalls(cos, TestTables.trigSystemDomainPoints, exactly = 4)
+        verifyLogCalls(ln, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log2, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log3, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log5, TestTables.logSystemDomainPoints)
     }
 
-    "system works with fully real trigonometric branch and tabular logarithmic stubs" {
+    "system works with fully real trigonometric branch and mocked logarithmic tables" {
         val sin = SinFunction()
         val cos = CosFunction(sin)
+        val ln = logMockFromTable(TestTables.lnSystemValues)
+        val log2 = logMockFromTable(TestTables.log2SystemValues)
+        val log3 = logMockFromTable(TestTables.log3SystemValues)
+        val log5 = logMockFromTable(TestTables.log5SystemValues)
         val system = SystemOfFunctions(
             cos,
             sin,
@@ -85,22 +139,26 @@ class SystemIntegrationTest : StringSpec({
             CscFunction(sin),
             TanFunction(sin, cos),
             CotFunction(sin, cos),
-            logStubFromTable("ln", TestTables.lnSystemValues),
-            logStubFromTable("log2", TestTables.log2SystemValues),
-            logStubFromTable("log3", TestTables.log3SystemValues),
-            logStubFromTable("log5", TestTables.log5SystemValues)
+            ln.mock,
+            log2.mock,
+            log3.mock,
+            log5.mock
         )
 
         assertSystemValues(system)
+        verifyLogCalls(ln, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log2, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log3, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log5, TestTables.logSystemDomainPoints)
     }
 
-    "system works with real ln and tabular logarithms built over it" {
+    "system works with real ln and mocked logarithms built over it" {
         val sin = SinFunction()
         val cos = CosFunction(sin)
         val ln = LnFunction()
-        val log2 = logStubFromCalculatedValues(LogBaseFunction(ln, 2.0), TestTables.logSystemDomainPoints)
-        val log3 = logStubFromCalculatedValues(LogBaseFunction(ln, 3.0), TestTables.logSystemDomainPoints)
-        val log5 = logStubFromCalculatedValues(LogBaseFunction(ln, 5.0), TestTables.logSystemDomainPoints)
+        val log2 = logMockFromCalculatedValues(LogBaseFunction(ln, 2.0), TestTables.logSystemDomainPoints)
+        val log3 = logMockFromCalculatedValues(LogBaseFunction(ln, 3.0), TestTables.logSystemDomainPoints)
+        val log5 = logMockFromCalculatedValues(LogBaseFunction(ln, 5.0), TestTables.logSystemDomainPoints)
         val system = SystemOfFunctions(
             cos,
             sin,
@@ -109,12 +167,15 @@ class SystemIntegrationTest : StringSpec({
             TanFunction(sin, cos),
             CotFunction(sin, cos),
             ln,
-            log2,
-            log3,
-            log5
+            log2.mock,
+            log3.mock,
+            log5.mock
         )
 
         assertSystemValues(system)
+        verifyLogCalls(log2, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log3, TestTables.logSystemDomainPoints)
+        verifyLogCalls(log5, TestTables.logSystemDomainPoints)
     }
 
     "system works with fully real modules" {
@@ -122,30 +183,36 @@ class SystemIntegrationTest : StringSpec({
     }
 })
 
-private fun trigStubFromTable(moduleName: String, values: Map<Double, Double>): TrigonometricFunction {
-    return TabularTrigStub(moduleName, values)
+private fun trigMockFromTable(values: Map<Double, Double>): TrigMockFixture {
+    val mock = mockk<TrigonometricFunction>()
+    values.forEach { (x, y) ->
+        every { mock.calculate(x) } returns y
+    }
+    return TrigMockFixture(mock)
 }
 
-private fun logStubFromTable(moduleName: String, values: Map<Double, Double>): LogarithmicFunction {
-    return TabularLogStub(moduleName, values)
+private fun logMockFromTable(values: Map<Double, Double>): LogMockFixture {
+    val mock = mockk<LogarithmicFunction>()
+    values.forEach { (x, y) ->
+        every { mock.calculate(x) } returns y
+    }
+    return LogMockFixture(mock)
 }
 
-private fun trigStubFromCalculatedValues(
+private fun trigMockFromCalculatedValues(
     function: TrigonometricFunction,
     points: List<Double>
-): TrigonometricFunction {
-    return TabularTrigStub(
-        "calculated-trig",
+) : TrigMockFixture {
+    return trigMockFromTable(
         points.associateWith(function::calculate)
     )
 }
 
-private fun logStubFromCalculatedValues(
+private fun logMockFromCalculatedValues(
     function: LogarithmicFunction,
     points: List<Double>
-): LogarithmicFunction {
-    return TabularLogStub(
-        "calculated-log",
+) : LogMockFixture {
+    return logMockFromTable(
         points.associateWith(function::calculate)
     )
 }
@@ -164,22 +231,24 @@ private fun systemTolerance(expected: Double): Double {
     return maxOf(abs(expected) * 1e-4, 1e-6)
 }
 
-private class TabularTrigStub(
-    private val moduleName: String,
-    private val values: Map<Double, Double>
-) : TrigonometricFunction {
-    override fun calculate(x: Double): Double {
-        return values.entries.firstOrNull { kotlin.math.abs(it.key - x) <= TestTables.tableLookupEps }?.value
-            ?: throw IllegalArgumentException("No tabular value for " + moduleName + " at x=" + x)
+private fun verifyTrigCalls(fixture: TrigMockFixture, points: List<Double>, exactly: Int = 1) {
+    points.forEach { x ->
+        verify(exactly = exactly) { fixture.mock.calculate(x) }
     }
+    confirmVerified(fixture.mock)
 }
 
-private class TabularLogStub(
-    private val moduleName: String,
-    private val values: Map<Double, Double>
-) : LogarithmicFunction {
-    override fun calculate(x: Double): Double {
-        return values.entries.firstOrNull { kotlin.math.abs(it.key - x) <= TestTables.tableLookupEps }?.value
-            ?: throw IllegalArgumentException("No tabular value for " + moduleName + " at x=" + x)
+private fun verifyLogCalls(fixture: LogMockFixture, points: List<Double>, exactly: Int = 1) {
+    points.forEach { x ->
+        verify(exactly = exactly) { fixture.mock.calculate(x) }
     }
+    confirmVerified(fixture.mock)
 }
+
+private data class TrigMockFixture(
+    val mock: TrigonometricFunction
+)
+
+private data class LogMockFixture(
+    val mock: LogarithmicFunction
+)
