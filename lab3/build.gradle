@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.codeborne:selenide:7.2.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.slf4j:slf4j-simple:2.0.12'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+def forwardedSystemProperties = [
+    'lab3.auth.login',
+    'lab3.auth.profileDir',
+    'lab3.artifactsDir',
+    'lab3.browser.binary.chrome',
+    'lab3.browser.binary.firefox'
+]
+
+def configureCommonUiRuntime = { task ->
+    task.systemProperty 'webdriver.http.factory', 'jdk-http-client'
+    forwardedSystemProperties.each { key ->
+        def value = System.getProperty(key)
+        if (value != null && !value.isBlank()) {
+            task.systemProperty key, value
+        }
+    }
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    configureCommonUiRuntime(delegate)
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat = 'short'
+    }
+}
+
+tasks.named('test', Test) {
+    enabled = false
+}
+
+tasks.register('authTest', Test) {
+    description = 'Runs authenticated Mail.ru UI tests with a prepared browser profile.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'auth'
+    }
+    configureCommonUiRuntime(delegate)
+    systemProperty 'lab3.headless', System.getProperty('lab3.headless', 'false')
+    shouldRunAfter(tasks.named('test'))
+}
+
+tasks.named('check') {
+    dependsOn(tasks.named('authTest'))
+}
+
+tasks.register('assistLogin', JavaExec) {
+    description = 'Opens Mail.ru login and waits for manual captcha/SMS completion to persist the profile.'
+    group = 'verification'
+    dependsOn(tasks.named('testClasses'))
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'ru.itmo.testing.lab3.tools.MailRuLoginAssistant'
+    configureCommonUiRuntime(delegate)
+    systemProperty 'lab3.headless', 'false'
+}
